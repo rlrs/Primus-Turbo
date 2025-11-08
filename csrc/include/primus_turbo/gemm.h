@@ -40,8 +40,8 @@ struct CKGemmFP8Params {
     hipStream_t stream = nullptr;
 };
 
-template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
-          ck_tile::QuantType QuantMode>
-void ck_gemm_fp8(const CKGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
+// template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+//           ck_tile::QuantType QuantMode>
+// void ck_gemm_fp8(const CKGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
 
 } // namespace primus_turbo

@@ -115,14 +115,14 @@ get_ck_gemm_instance(const ck_tile::index_t m, const ck_tile::index_t n, const c
     get_ck_gemm_instance<AType, BType, CType, float, ALayout, BLayout, CLayout, QuantMode>(        \
         const ck_tile::index_t, const ck_tile::index_t, const ck_tile::index_t);
 
-// FP8_E4M3 * FP8_E4M3 = FP16
-APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t)
-// FP8_E4M3 * FP8_E4M3 = BF16
-APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t)
-// FP8_E5M2 * FP8_E5M2 = FP16
-APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t)
-// FP8_E5M2 * FP8_E5M2 = BF16
-APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t)
+// // FP8_E4M3 * FP8_E4M3 = FP16
+// APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t)
+// // FP8_E4M3 * FP8_E4M3 = BF16
+// APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t)
+// // FP8_E5M2 * FP8_E5M2 = FP16
+// APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t)
+// // FP8_E5M2 * FP8_E5M2 = BF16
+// APPLY_GET_CK_GEMM_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GEMM_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t)
 
 // clang-format on
 } // namespace primus_turbo

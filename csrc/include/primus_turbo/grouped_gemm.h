@@ -13,7 +13,7 @@
 namespace primus_turbo {
 
 std::int64_t get_ck_grouped_gemm_args_sizes(const int group_num);
-std::int64_t get_ck_grouped_gemm_fp8_args_sizes(const int group_num);
+// std::int64_t get_ck_grouped_gemm_fp8_args_sizes(const int group_num);
 
 template <typename AType, typename BType, typename CType> struct CKGroupedGemmParams {
     void *args_ptr = nullptr;
@@ -68,15 +68,15 @@ void ck_grouped_gemm(const CKGroupedGemmParams<ADataType, BDataType, CDataType> 
 template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType = float>
 void ck_grouped_gemm_variable_k(const CKGroupedGemmParams<ADataType, BDataType, CDataType> &params);
 
-template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
-          ck_tile::QuantType QuantMode>
-void ck_grouped_gemm_fp8(
-    const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
+// template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+//           ck_tile::QuantType QuantMode>
+// void ck_grouped_gemm_fp8(
+//     const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
 
-template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
-          ck_tile::QuantType QuantMode>
-void ck_grouped_gemm_fp8_variable_k(
-    const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
+// template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+//           ck_tile::QuantType QuantMode>
+// void ck_grouped_gemm_fp8_variable_k(
+//     const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params);
 
 template <typename IndexType>
 void compute_group_offs(const IndexType *group_lens_ptr, IndexType *group_offs_ptr,

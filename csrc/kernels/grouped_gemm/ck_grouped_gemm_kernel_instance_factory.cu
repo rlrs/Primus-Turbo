@@ -6,6 +6,41 @@
 // clang-format off
 namespace primus_turbo {
 
+template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+          typename ALayout, typename BLayout, typename CLayout, ck_tile::QuantType QuantMode>
+std::unique_ptr<CKGroupedGemmRunnerInterFace>
+get_ck_grouped_gemm_instance_gfx90a(const ck_tile::index_t group_num, const ck_tile::index_t m,
+                                    const ck_tile::index_t n, const ck_tile::index_t k) {
+    std::unique_ptr<CKGroupedGemmRunnerInterFace> runner = nullptr;
+    if (get_current_arch() != GPUArch::GFX90a) {
+        PRIMUS_TURBO_ERROR("Currently Arch != gfx90a");
+    }
+
+    if constexpr (std::is_same_v<ADataType, ck_tile::half_t> ||
+                  std::is_same_v<ADataType, ck_tile::bfloat16_t>) {
+        if (n % 256 == 0) {
+            using TileConfig = CKGroupedGemmTileCfg_256x256x64_32x32x16_2x2x1;
+            using Runner = CKGroupedGemmRunner<ADataType, BDataType, CDataType, ALayout, BLayout,
+                                               CLayout, TileConfig, AccDataType>;
+            runner       = std::make_unique<Runner>();
+        } else if (n % 128 == 0) {
+            using TileConfig = CKGroupedGemmTileCfg_256x128x64_32x32x16_2x2x1;
+            using Runner = CKGroupedGemmRunner<ADataType, BDataType, CDataType, ALayout, BLayout,
+                                               CLayout, TileConfig, AccDataType>;
+            runner       = std::make_unique<Runner>();
+        } else {
+            using TileConfig = CKGroupedGemmTileCfg_256x128x64_32x32x16_2x2x1_padding;
+            using Runner = CKGroupedGemmRunner<ADataType, BDataType, CDataType, ALayout, BLayout,
+                                               CLayout, TileConfig, AccDataType>;
+            runner       = std::make_unique<Runner>();
+        }
+    }
+    else {
+        PRIMUS_TURBO_ERROR("Grouped Gemm on gfx90a only supports fp16/bf16");
+    }
+    return runner;
+}
+
 #ifdef PRIMUS_TURBO_GFX942
 template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
           typename ALayout, typename BLayout, typename CLayout, ck_tile::QuantType QuantMode>
@@ -127,6 +162,11 @@ get_ck_grouped_gemm_instance(const ck_tile::index_t group_num, const ck_tile::in
                              const ck_tile::index_t n, const ck_tile::index_t k) {
     const GPUArch arch = get_current_arch();
     switch (arch) {
+    case GPUArch::GFX90a: {
+        return get_ck_grouped_gemm_instance_gfx90a<ADataType, BDataType, CDataType, AccDataType,
+                                                   ALayout, BLayout, CLayout, QuantMode>(group_num,
+                                                                                         m, n, k);
+        }
 #ifdef PRIMUS_TURBO_GFX942
     case GPUArch::GFX942: {
         return get_ck_grouped_gemm_instance_gfx942<ADataType, BDataType, CDataType, AccDataType,
@@ -157,13 +197,13 @@ APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::half_t, ck
 // BF16 * BF16 = BF16
 APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::bfloat16_t, ck_tile::bfloat16_t, ck_tile::bfloat16_t)
 // FP8_E4M3 * FP8_E4M3 = FP16
-APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t)
-// FP8_E4M3 * FP8_E4M3 = BF16
-APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t)
-// FP8_E5M2 * FP8_E5M2 = FP16
-APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t)
-// FP8_E5M2 * FP8_E5M2 = BF16
-APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t)
+// APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t)
+// // FP8_E4M3 * FP8_E4M3 = BF16
+// APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t)
+// // FP8_E5M2 * FP8_E5M2 = FP16
+// APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t)
+// // FP8_E5M2 * FP8_E5M2 = BF16
+// APPLY_GET_CK_GG_INSTANCE_ALL_LAYOUT(DECL_GET_CK_GG_INSTANCE, ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t)
 
 // clang-format on
 } // namespace primus_turbo

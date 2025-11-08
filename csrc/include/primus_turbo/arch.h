@@ -10,7 +10,7 @@
 
 namespace primus_turbo {
 
-enum class GPUArch { GFX942, GFX950, UNKNOWN };
+enum class GPUArch { GFX90a, GFX942, GFX950, UNKNOWN };
 
 inline GPUArch get_current_arch() {
     static GPUArch cached_arch = []() -> GPUArch {
@@ -19,6 +19,8 @@ inline GPUArch get_current_arch() {
         if (err != hipSuccess) {
             return GPUArch::UNKNOWN;
         }
+        if (prop.major == 9 && prop.minor == 0)
+            return GPUArch::GFX90a;
         if (prop.major == 9 && prop.minor == 4)
             return GPUArch::GFX942;
         if (prop.major == 9 && prop.minor == 5)

@@ -329,53 +329,53 @@ void ck_grouped_gemm_variable_k(
     }
 }
 
-template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
-          ck_tile::QuantType QuantMode>
-void ck_grouped_gemm_fp8_variable_k(
-    const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params) {
-    const ck_tile::index_t k_batch = 1;
-    const bool             splitk  = k_batch > 1;
+// template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+//           ck_tile::QuantType QuantMode>
+// void ck_grouped_gemm_fp8_variable_k(
+//     const CKGroupedGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params) {
+//     const ck_tile::index_t k_batch = 1;
+//     const bool             splitk  = k_batch > 1;
 
-    const ck_tile::index_t strideA  = params.transA ? params.m : params.k;
-    const ck_tile::index_t strideB  = params.transB ? params.k : params.n;
-    const ck_tile::index_t strideC  = params.n;
-    const ck_tile::index_t strideAQ = 1;
-    const ck_tile::index_t strideBQ = 1;
+//     const ck_tile::index_t strideA  = params.transA ? params.m : params.k;
+//     const ck_tile::index_t strideB  = params.transB ? params.k : params.n;
+//     const ck_tile::index_t strideC  = params.n;
+//     const ck_tile::index_t strideAQ = 1;
+//     const ck_tile::index_t strideBQ = 1;
 
-    {
-        const int threads = std::min(MAX_THREADS_PER_BLOCK, params.group_num);
-        const int grids   = (params.group_num + threads - 1) / threads;
-        compute_grouped_gemm_fp8_variable_k_args<ADataType, BDataType, CDataType, AccDataType,
-                                                 QuantMode><<<grids, threads, 0, params.stream>>>(
-            reinterpret_cast<ck_tile::QuantGemmTransKernelArg *>(params.args_ptr), params.a_ptr,
-            params.b_ptr, params.c_ptr, params.aq_ptr, params.bq_ptr, params.group_lens_ptr,
-            params.group_offs_ptr, params.transA, params.transB, params.group_num, params.m,
-            params.n, strideA, strideB, strideC, strideAQ, strideBQ, k_batch);
-    }
+//     {
+//         const int threads = std::min(MAX_THREADS_PER_BLOCK, params.group_num);
+//         const int grids   = (params.group_num + threads - 1) / threads;
+//         compute_grouped_gemm_fp8_variable_k_args<ADataType, BDataType, CDataType, AccDataType,
+//                                                  QuantMode><<<grids, threads, 0, params.stream>>>(
+//             reinterpret_cast<ck_tile::QuantGemmTransKernelArg *>(params.args_ptr), params.a_ptr,
+//             params.b_ptr, params.c_ptr, params.aq_ptr, params.bq_ptr, params.group_lens_ptr,
+//             params.group_offs_ptr, params.transA, params.transB, params.group_num, params.m,
+//             params.n, strideA, strideB, strideC, strideAQ, strideBQ, k_batch);
+//     }
 
-    const auto stream_cfg = ck_tile::stream_config{params.stream};
-    using CLayout         = RowMajor;
-    std::unique_ptr<CKGroupedGemmRunnerInterFace> runner;
-    if (params.transA && !params.transB) { // TN
-        using ALayout = ColMajor;
-        using BLayout = RowMajor;
-        runner = get_ck_grouped_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
-                                              BLayout, CLayout, QuantMode>(
-            params.group_num, params.m, params.n, params.k);
-    } else {
-        PRIMUS_TURBO_CHECK(false, "CKGroupedGemm-VariableK only support TN");
-    }
-    runner->run(stream_cfg, params.group_num, params.args_ptr, params.num_cu);
+//     const auto stream_cfg = ck_tile::stream_config{params.stream};
+//     using CLayout         = RowMajor;
+//     std::unique_ptr<CKGroupedGemmRunnerInterFace> runner;
+//     if (params.transA && !params.transB) { // TN
+//         using ALayout = ColMajor;
+//         using BLayout = RowMajor;
+//         runner = get_ck_grouped_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
+//                                               BLayout, CLayout, QuantMode>(
+//             params.group_num, params.m, params.n, params.k);
+//     } else {
+//         PRIMUS_TURBO_CHECK(false, "CKGroupedGemm-VariableK only support TN");
+//     }
+//     runner->run(stream_cfg, params.group_num, params.args_ptr, params.num_cu);
 
-    // Postprocess
-    {
-        const int threads = std::min(MAX_THREADS_PER_BLOCK, params.group_num);
-        const int grids   = (params.group_num + threads - 1) / threads;
-        grouped_gemm_variable_k_postprocess<CDataType><<<grids, threads, 0, params.stream>>>(
-            params.c_ptr, params.group_lens_ptr, params.group_offs_ptr, params.group_num, params.m,
-            params.n);
-    }
-}
+//     // Postprocess
+//     {
+//         const int threads = std::min(MAX_THREADS_PER_BLOCK, params.group_num);
+//         const int grids   = (params.group_num + threads - 1) / threads;
+//         grouped_gemm_variable_k_postprocess<CDataType><<<grids, threads, 0, params.stream>>>(
+//             params.c_ptr, params.group_lens_ptr, params.group_offs_ptr, params.group_num, params.m,
+//             params.n);
+//     }
+// }
 
 // ck_grouped_gemm explicit instantiation.
 // fp16 * fp16 -> fp16
@@ -388,37 +388,37 @@ template void ck_grouped_gemm<ck_tile::bfloat16_t, ck_tile::bfloat16_t, ck_tile:
         &params);
 
 // fp8 * fp8 -> fp16
-template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                                  ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                                  ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-// bf8 * bf8 -> fp16
-template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                                  ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                                  ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-// fp8 * fp8 -> bf16
-template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
-                                  ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
-        &params);
-template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
-                                  ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
-        &params);
+// template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                                   ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                                   ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// // bf8 * bf8 -> fp16
+// template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                                   ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                                   ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// // fp8 * fp8 -> bf16
+// template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
+//                                   ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
+//         &params);
+// template void ck_grouped_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
+//                                   ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
+//         &params);
 // bf8 * bf8 -> bf16
-template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
-                                  ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
-        &params);
-template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
-                                  ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
-        &params);
+// template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
+//                                   ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
+//         &params);
+// template void ck_grouped_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
+//                                   ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
+//         &params);
 // ck_grouped_gemm_variable_k explicit instantiation.
 // fp16 * fp16 -> fp16
 template void ck_grouped_gemm_variable_k<ck_tile::half_t, ck_tile::half_t, ck_tile::half_t>(
@@ -430,37 +430,37 @@ ck_grouped_gemm_variable_k<ck_tile::bfloat16_t, ck_tile::bfloat16_t, ck_tile::bf
         &params);
 
 // fp8 * fp8 -> fp16
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                                             ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                                             ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-// bf8 * bf8 -> fp16
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                                             ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                                             ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-// fp8 * fp8 -> bf16
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t,
-                                             float, ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
-        &params);
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t,
-                                             float, ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
-        &params);
-// bf8 * bf8 -> bf16
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t,
-                                             float, ck_tile::QuantType::TensorQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
-        &params);
-template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t,
-                                             float, ck_tile::QuantType::RowColQuant>(
-    const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
-        &params);
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                                              ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                                              ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// // bf8 * bf8 -> fp16
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                                              ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                                              ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// // fp8 * fp8 -> bf16
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t,
+//                                              float, ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
+//         &params);
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t,
+//                                              float, ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float>
+//         &params);
+// // bf8 * bf8 -> bf16
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t,
+//                                              float, ck_tile::QuantType::TensorQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
+//         &params);
+// template void ck_grouped_gemm_fp8_variable_k<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t,
+//                                              float, ck_tile::QuantType::RowColQuant>(
+//     const CKGroupedGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float>
+//         &params);
 template void compute_group_offs<int64_t>(const int64_t *group_lens_ptr, int64_t *group_offs_ptr,
                                           const int64_t group_num, hipStream_t stream);
 } // namespace primus_turbo

@@ -88,15 +88,15 @@ Buffer::Buffer(int rank, int num_ranks, int64_t num_nvl_bytes, int64_t num_rdma_
     PRIMUS_TURBO_CHECK_HIP(hipMemsetAsync(workspace, 0, NUM_WORKSPACE_BYTES, comm_stream));
 
     // MoE counter
-    PRIMUS_TURBO_CHECK_HIP(hipHostMalloc(&moe_recv_counter, sizeof(int64_t), hipHostAllocMapped));
+    // PRIMUS_TURBO_CHECK_HIP(hipHostMalloc(&moe_recv_counter, sizeof(int64_t), hipHostAllocMapped));
     PRIMUS_TURBO_CHECK_HIP(
         hipHostGetDevicePointer(reinterpret_cast<void **>(&moe_recv_counter_mapped),
                                 const_cast<int *>(moe_recv_counter), 0));
     *moe_recv_counter = -1;
 
     // MoE expert-level counter
-    PRIMUS_TURBO_CHECK_HIP(hipHostMalloc(&moe_recv_expert_counter,
-                                         sizeof(int) * NUM_MAX_LOCAL_EXPERTS, hipHostAllocMapped));
+    // PRIMUS_TURBO_CHECK_HIP(hipHostMalloc(&moe_recv_expert_counter,
+    //                                      sizeof(int) * NUM_MAX_LOCAL_EXPERTS, hipHostAllocMapped));
     PRIMUS_TURBO_CHECK_HIP(
         hipHostGetDevicePointer(reinterpret_cast<void **>(&moe_recv_expert_counter_mapped),
                                 const_cast<int *>(moe_recv_expert_counter), 0));
@@ -105,8 +105,8 @@ Buffer::Buffer(int rank, int num_ranks, int64_t num_nvl_bytes, int64_t num_rdma_
 
     // MoE RDMA-level counter
     if (num_rdma_ranks > 0) {
-        PRIMUS_TURBO_CHECK_HIP(
-            hipHostMalloc(&moe_recv_rdma_counter, sizeof(int), hipHostAllocMapped));
+        // PRIMUS_TURBO_CHECK_HIP(
+        //     hipHostMalloc(&moe_recv_rdma_counter, sizeof(int), hipHostAllocMapped));
         PRIMUS_TURBO_CHECK_HIP(
             hipHostGetDevicePointer(reinterpret_cast<void **>(&moe_recv_rdma_counter_mapped),
                                     const_cast<int *>(moe_recv_rdma_counter), 0));

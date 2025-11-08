@@ -20,7 +20,7 @@ BUILD_TORCH = "PYTORCH" in PRIMUS_TURBO_FRAMEWORK
 BUILD_JAX = "JAX" in PRIMUS_TURBO_FRAMEWORK
 
 # -------- Supported GPU ARCHS --------
-SUPPORTED_GPU_ARCHS = ["gfx942", "gfx950"]
+SUPPORTED_GPU_ARCHS = ["gfx90a", "gfx942", "gfx950"]
 
 # -------- ROCSHMEM LIB ---------------
 # try to found rocshmem in default path or enviorment

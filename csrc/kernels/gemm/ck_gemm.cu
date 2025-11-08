@@ -42,68 +42,68 @@ compute_gemm_args(const CKGemmFP8Params<ADataType, BDataType, CDataType, AccData
     return args;
 }
 
-template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
-          ck_tile::QuantType QuantMode>
-void ck_gemm_fp8(const CKGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params) {
-    const ck_tile::index_t k_batch = 1;
-    const bool             splitk  = k_batch > 1;
+// template <typename ADataType, typename BDataType, typename CDataType, typename AccDataType,
+//           ck_tile::QuantType QuantMode>
+// void ck_gemm_fp8(const CKGemmFP8Params<ADataType, BDataType, CDataType, AccDataType> &params) {
+//     const ck_tile::index_t k_batch = 1;
+//     const bool             splitk  = k_batch > 1;
 
-    const ck_tile::index_t strideA  = params.transA ? params.m : params.k;
-    const ck_tile::index_t strideB  = params.transB ? params.k : params.n;
-    const ck_tile::index_t strideC  = params.n;
-    const ck_tile::index_t strideAQ = 1;
-    const ck_tile::index_t strideBQ = 1;
+//     const ck_tile::index_t strideA  = params.transA ? params.m : params.k;
+//     const ck_tile::index_t strideB  = params.transB ? params.k : params.n;
+//     const ck_tile::index_t strideC  = params.n;
+//     const ck_tile::index_t strideAQ = 1;
+//     const ck_tile::index_t strideBQ = 1;
 
-    const auto                             stream_cfg = ck_tile::stream_config{params.stream};
-    std::unique_ptr<CKGemmRunnerInterFace> runner;
-    using CLayout = RowMajor;
-    if (!params.transA && !params.transB) { // NN
-        using ALayout = RowMajor;
-        using BLayout = RowMajor;
-        runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
-                                             BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
-    } else if (!params.transA && params.transB) { // NT
-        using ALayout = RowMajor;
-        using BLayout = ColMajor;
-        runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
-                                             BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
-    } else if (params.transA && !params.transB) { // TN
-        using ALayout = ColMajor;
-        using BLayout = RowMajor;
-        runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
-                                             BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
-    } else {
-        PRIMUS_TURBO_CHECK(false, "CK Gemm only support NN, TN and NT");
-    }
-    auto args = compute_gemm_args(params, strideA, strideB, strideC, strideAQ, strideBQ);
-    runner->run(stream_cfg, args);
-}
+//     const auto                             stream_cfg = ck_tile::stream_config{params.stream};
+//     std::unique_ptr<CKGemmRunnerInterFace> runner;
+//     using CLayout = RowMajor;
+//     if (!params.transA && !params.transB) { // NN
+//         using ALayout = RowMajor;
+//         using BLayout = RowMajor;
+//         runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
+//                                              BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
+//     } else if (!params.transA && params.transB) { // NT
+//         using ALayout = RowMajor;
+//         using BLayout = ColMajor;
+//         runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
+//                                              BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
+//     } else if (params.transA && !params.transB) { // TN
+//         using ALayout = ColMajor;
+//         using BLayout = RowMajor;
+//         runner        = get_ck_gemm_instance<ADataType, BDataType, CDataType, AccDataType, ALayout,
+//                                              BLayout, CLayout, QuantMode>(params.m, params.n, params.k);
+//     } else {
+//         PRIMUS_TURBO_CHECK(false, "CK Gemm only support NN, TN and NT");
+//     }
+//     auto args = compute_gemm_args(params, strideA, strideB, strideC, strideAQ, strideBQ);
+//     runner->run(stream_cfg, args);
+// }
 
-// fp8 * fp8 -> fp16 - RowColQuant
-template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                          ck_tile::QuantType::RowColQuant>(
-    const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                          ck_tile::QuantType::RowColQuant>(
-    const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
-                          ck_tile::QuantType::RowColQuant>(
-    const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float> &params);
-template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
-                          ck_tile::QuantType::RowColQuant>(
-    const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float> &params);
+// // fp8 * fp8 -> fp16 - RowColQuant
+// template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                           ck_tile::QuantType::RowColQuant>(
+//     const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                           ck_tile::QuantType::RowColQuant>(
+//     const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
+//                           ck_tile::QuantType::RowColQuant>(
+//     const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
+//                           ck_tile::QuantType::RowColQuant>(
+//     const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float> &params);
 
-// fp8 * fp8 -> fp16 - TensorQuant
-template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
-                          ck_tile::QuantType::TensorQuant>(
-    const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
-template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
-                          ck_tile::QuantType::TensorQuant>(
-    const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
-template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
-                          ck_tile::QuantType::TensorQuant>(
-    const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float> &params);
-template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
-                          ck_tile::QuantType::TensorQuant>(
-    const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float> &params);
+// // fp8 * fp8 -> fp16 - TensorQuant
+// template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float,
+//                           ck_tile::QuantType::TensorQuant>(
+//     const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::half_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float,
+//                           ck_tile::QuantType::TensorQuant>(
+//     const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::half_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float,
+//                           ck_tile::QuantType::TensorQuant>(
+//     const CKGemmFP8Params<ck_tile::fp8_t, ck_tile::fp8_t, ck_tile::bfloat16_t, float> &params);
+// template void ck_gemm_fp8<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float,
+//                           ck_tile::QuantType::TensorQuant>(
+//     const CKGemmFP8Params<ck_tile::bf8_t, ck_tile::bf8_t, ck_tile::bfloat16_t, float> &params);
 } // namespace primus_turbo

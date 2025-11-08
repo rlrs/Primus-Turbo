@@ -10,7 +10,7 @@
 
 #include "primus_turbo/common.h"
 #include <hip/hip_bfloat16.h>
-#include <hip/hip_fp8.h>
+// #include <hip/hip_fp8.h>
 #include <hip/hip_runtime.h>
 
 #define NUM_MAX_NVL_PEERS 8

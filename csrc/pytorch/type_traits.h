@@ -18,21 +18,21 @@ using namespace primus_turbo::dtype;
  */
 template <at::ScalarType scalar_type> struct TorchToCKTileType;
 
-template <> struct TorchToCKTileType<at::kFloat8_e4m3fnuz> {
-    using type = ck_tile::fp8_t;
-};
+// template <> struct TorchToCKTileType<at::kFloat8_e4m3fnuz> {
+//     using type = ck_tile::fp8_t;
+// };
 
-template <> struct TorchToCKTileType<at::kFloat8_e4m3fn> {
-    using type = ck_tile::fp8_t;
-};
+// template <> struct TorchToCKTileType<at::kFloat8_e4m3fn> {
+//     using type = ck_tile::fp8_t;
+// };
 
-template <> struct TorchToCKTileType<at::kFloat8_e5m2fnuz> {
-    using type = ck_tile::bf8_t;
-};
+// template <> struct TorchToCKTileType<at::kFloat8_e5m2fnuz> {
+//     using type = ck_tile::bf8_t;
+// };
 
-template <> struct TorchToCKTileType<at::kFloat8_e5m2> {
-    using type = ck_tile::bf8_t;
-};
+// template <> struct TorchToCKTileType<at::kFloat8_e5m2> {
+//     using type = ck_tile::bf8_t;
+// };
 
 template <> struct TorchToCKTileType<at::kHalf> {
     using type = ck_tile::half_t;
@@ -51,10 +51,10 @@ static inline bool is_16bit_floating_point_dtype(at::ScalarType dtype) {
     return dtype == at::kHalf || dtype == at::kBFloat16;
 }
 
-static inline bool is_8bit_floating_point_dtype(at::ScalarType dtype) {
-    return dtype == at::kFloat8_e4m3fnuz || dtype == at::kFloat8_e4m3fn ||
-           dtype == at::kFloat8_e5m2fnuz || dtype == at::kFloat8_e5m2;
-}
+// static inline bool is_8bit_floating_point_dtype(at::ScalarType dtype) {
+//     return dtype == at::kFloat8_e4m3fnuz || dtype == at::kFloat8_e4m3fn ||
+//            dtype == at::kFloat8_e5m2fnuz || dtype == at::kFloat8_e5m2;
+// }
 
 static inline bool is_floating_point_dtype(at::ScalarType dtype) {
     return dtype == at::kHalf || dtype == at::kBFloat16 || dtype == at::kFloat;
